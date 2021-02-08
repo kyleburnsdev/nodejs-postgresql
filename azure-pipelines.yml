@@ -2,6 +2,20 @@
 # Build a Node.js Express app and deploy it to Azure as a Linux web app.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+name: $(Date:yyyyMMdd)$(Rev:.r)
+parameters:
+  - name: appName
+    displayName: Application Name
+    type: string
+  - name: environment
+    displayName: Environment for this deployment
+    type: string
+  - name: location
+    displayName: Location of deployed resources
+    type: string
+  - name: dbUser
+    displayName: Username for admin user on PostreSQL Database
+    type: string
 
 trigger:
 - main
@@ -65,7 +79,16 @@ stages:
     strategy:
       runOnce:
         deploy:
-          steps:            
+          steps: 
+          - task: AzureCLI@2
+            displayName: Deploy Infrastructure Components
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                ./infra/deploy.sh  --appName $(appName) --environment $(environment) --location $(location) --dbUser $(dbUser) --dbPassword $(dbPassword)
+
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
             inputs:
