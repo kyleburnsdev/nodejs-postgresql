@@ -16,8 +16,6 @@ parameters:
   - name: dbUser
     displayName: Username for admin user on PostgreSQL Database
     type: string
-  - name: dbPassword
-    displayName: Password for admin user on PostgreSQL Database
 
 trigger:
 - main
