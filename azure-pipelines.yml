@@ -89,7 +89,14 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                ./infra/deploy.sh  --appName $(appName) --environment $(environment) --location $(location) --dbUser $(dbUser) --dbPassword $(dbPassword)
+                ls
+                ./infra/deploy.sh  --appName $appName --environment $environment --location $location --dbUser $dbUser --dbPassword $dbPassword
+            env:
+              appName: $(appName)
+              environment: $(environment)
+              location: $(location)
+              dbUser: $(dbUser) 
+              dbPassword: $(dbPassword)
 
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
