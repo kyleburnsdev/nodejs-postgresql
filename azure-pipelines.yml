@@ -56,9 +56,9 @@ stages:
 
     - task: CopyFiles@2
       displayName: 'Copy infrastructure code to $(Build.ArtifactStagingDirectory)/infra'
-      contents: |
-        infra/**
-      targetFolder: $(Build.ArtifactStagingDirectory)/infra
+      inputs:
+        contents: 'infra/**'
+        targetFolder: $(Build.ArtifactStagingDirectory)/infra
 
     - task: DeleteFiles@1
       displayName: 'Delete infra directory before generated deployment archive'
