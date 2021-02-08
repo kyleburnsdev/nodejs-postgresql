@@ -1,0 +1,20 @@
+{
+  "name": "nodejs-postgresql",
+  "version": "1.0.0",
+  "description": "Demonstrates connecting NodeJS to Azure Database for PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyleburnsdev/nodejs-postgresql.git"
+  },
+  "author": "Kyle M. Burns",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kyleburnsdev/nodejs-postgresql/issues"
+  },
+  "homepage": "https://github.com/kyleburnsdev/nodejs-postgresql#readme"
+}
