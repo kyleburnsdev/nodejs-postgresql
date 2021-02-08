@@ -110,7 +110,7 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/infra
               inlineScript: |
                 ls
-                ./infra/deploy.sh  --appName $appName --environment $environment --location $location --dbUser $dbUser --dbPassword $dbPassword
+                sudo ./infra/deploy.sh  --appName $appName --environment $environment --location $location --dbUser $dbUser --dbPassword $dbPassword
             env:
               appName: $(appName)
               environment: $(environment)
