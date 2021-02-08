@@ -1,15 +1,4 @@
-# parse command parameters
-while [ $# -gt 0 ]; do
-
-   if [[ $1 == *"--"* ]]; then
-        v="${1/--/}"
-        declare $v="$2"
-   fi
-
-  shift
-done
-
-# pipeline parameters
+# should be exposed from env
 echo $appName
 echo $environment
 echo $location
