@@ -110,6 +110,11 @@ stages:
               workingDirectory: $(Pipeline.Workspace)/infra
               inlineScript: |
                 ls
+                appName=$(appName)
+                environment=$(environment)
+                location=$(location)
+                dbUser=$(dbUser)                
+
                 # should be exposed from env
                 echo $appName
                 echo $environment
@@ -133,12 +138,8 @@ stages:
                     --parameters appName=$appName environment=$environment \
                     --parameters dbUser=$dbUser dbPassword=$dbPassword
                 
-            env:
-              appName: $appName
-              environment: $environment
-              location: $location
-              dbUser: $dbUser
-              dbPassword: $dbPassword
+            env:              
+              dbPassword: $(dbPassword)
 
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
