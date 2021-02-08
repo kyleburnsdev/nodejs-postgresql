@@ -14,8 +14,10 @@ parameters:
     displayName: Location of deployed resources
     type: string
   - name: dbUser
-    displayName: Username for admin user on PostreSQL Database
+    displayName: Username for admin user on PostgreSQL Database
     type: string
+  - name: dbPassword
+    displayName: Password for admin user on PostgreSQL Database
 
 trigger:
 - main
