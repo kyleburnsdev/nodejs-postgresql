@@ -107,7 +107,7 @@ stages:
               azureSubscription: $(azureSubscription)
               scriptType: bash
               scriptLocation: inlineScript
-              workingDirectory: $(Pipeline.Workspace)
+              workingDirectory: $(Pipeline.Workspace)/infra
               inlineScript: |
                 ls
                 ./infra/deploy.sh  --appName $appName --environment $environment --location $location --dbUser $dbUser --dbPassword $dbPassword
