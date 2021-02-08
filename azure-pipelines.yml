@@ -134,11 +134,11 @@ stages:
                     --parameters dbUser=$dbUser dbPassword=$dbPassword
                 
             env:
-              appName: $(appName)
-              environment: $(environment)
-              location: $(location)
-              dbUser: $(dbUser) 
-              dbPassword: $(dbPassword)
+              appName: $appName
+              environment: $environment
+              location: $location
+              dbUser: $dbUser
+              dbPassword: $dbPassword
 
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
