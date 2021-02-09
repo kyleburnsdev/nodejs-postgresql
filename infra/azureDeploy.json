@@ -25,7 +25,13 @@
         "webAppName": "[concat(variables('baseName'), 'app')]",
         "appPlanName": "[concat(variables('baseName'), 'plan')]",
         "databaseServerName": "[concat(variables('baseName'), 'psql')]",
-        "appInsightsName": "[concat(variables('baseName'), 'appi')]"
+        "appInsightsName": "[concat(variables('baseName'), 'appi')]",
+        "dbConnectionAppSettings" : {
+            "host": "[concat(variables('databaseServerName'), '.postgres.database.azure.com')]",
+            "user": "[concat(parameters('dbUser'), '@', variables('databaseServerName'))]",
+            "password": "[parameters('dbPassword')]",
+            "database": "postgres"
+        }
     },
     "resources": [
         {
@@ -131,7 +137,24 @@
                 "dailyMemoryTimeQuota": 0,
                 "httpsOnly": false,
                 "redundancyMode": "None"
-            }
+            },
+            "resources": [
+                {
+                    "type": "config",
+                    "apiVersion": "2020-06-01",
+                    "name": "appsettings",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', variables('webAppName'))]"
+                    ],
+                    "properties":
+                    {
+                        "PGHOST": "[variables('dbConnectionAppSettings').host]",
+                        "PGUSER": "[variables('dbConnectionAppSettings').user]",
+                        "PGDATABASE": "[variables('dbConnectionAppSettings').database]",
+                        "PGPASSWORD": "[variables('dbConnectionAppSettings').password]"
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.Web/sites/config",
@@ -206,6 +229,6 @@
                 "ftpsState": "AllAllowed",
                 "reservedInstanceCount": 0
             }
-        }        
+        }
     ]
 }

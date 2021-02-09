@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/kyleburnsdev/nodejs-postgresql/issues"
   },
-  "homepage": "https://github.com/kyleburnsdev/nodejs-postgresql#readme"
+  "homepage": "https://github.com/kyleburnsdev/nodejs-postgresql#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "pg": "^8.5.1"
+  }
 }

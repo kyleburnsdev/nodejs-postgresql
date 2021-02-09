@@ -98,7 +98,6 @@ stages:
       runOnce:
         deploy:
           steps: 
-          - bash: |
           - task: AzureCLI@2
             displayName: Deploy Infrastructure Components
             inputs:
@@ -107,48 +106,22 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/infra/infra
               inlineScript: |
-                ls
-                appName=$APPNAME
-                environment=$ENVIRONMENT
-                location=$LOCATION
-                dbUser=$DBUSER
-
-                # should be exposed from env
-                echo $appName
-                echo $environment
-                echo $location
-                echo $dbUser
-                echo $dbPassword
-
-                # derived
-                resourceGroupName="$appName-$environment-$location-rg"
-                isUpdate=$(az group exists -n $resourceGroupName)
-
-                if [ "$isUpdate" = "false" ]
-                then
-                echo "New Deployment. Creating Resource Group..."
-                az group create -l $location -n $resourceGroupName
-                fi
-
-                echo "Applying Template"
-                az deployment group create -g $resourceGroupName \
-                    --template-file azureDeploy.json \
-                    --parameters appName=$appName environment=$environment \
-                    --parameters dbUser=$dbUser dbPassword=$dbPassword
-                
+                chmod +x deploy.sh
+                ./deploy.sh
             env:
               APPNAME: ${{ parameters.appName }}
               ENVIRONMENT: ${{ parameters.environment }}
               LOCATION: ${{ parameters.location }}
               DBUSER: ${{ parameters.dbUser }}
               dbPassword: $(dbPassword)
+              DEPLOYMENT_FILE_PATH: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
 
-          - task: AzureWebApp@1
-            displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              appType: webAppLinux
-              appName: $(webAppName)
-              runtimeStack: 'NODE|10.10'
-              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
-              startUpCommand: 'npm run start'
+#          - task: AzureWebApp@1
+#            displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
+#            inputs:
+#              azureSubscription: $(azureSubscription)
+#              appType: webAppLinux
+#              appName: $(webAppName)
+#              runtimeStack: 'NODE|10.10'
+#              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+#              startUpCommand: 'npm run start'
