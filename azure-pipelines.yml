@@ -108,13 +108,13 @@ stages:
               azureSubscription: $(azureSubscription)
               scriptType: bash
               scriptLocation: inlineScript
-              workingDirectory: $(Pipeline.Workspace)/infra
+              workingDirectory: $(Pipeline.Workspace)/infra/infra
               inlineScript: |
                 ls
-                appName=$APP_NAME
-                environment=$ENV_NAME
-                location=$RESOURCE_LOCATION
-                dbUser=$DB_USER
+                appName=$APPNAME
+                environment=$ENVIRONMENT
+                location=$LOCATION
+                dbUser=$DBUSER
 
                 # should be exposed from env
                 echo $appName
@@ -139,11 +139,7 @@ stages:
                     --parameters appName=$appName environment=$environment \
                     --parameters dbUser=$dbUser dbPassword=$dbPassword
                 
-            env:
-              APP_NAME: $(appName)
-              ENV_NAME: $(environment)
-              RESOURCE_LOCATION: $(location)
-              DB_USER: $(dbUser)
+            env:              
               dbPassword: $(dbPassword)
 
           - task: AzureWebApp@1
