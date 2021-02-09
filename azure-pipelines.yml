@@ -98,7 +98,6 @@ stages:
       runOnce:
         deploy:
           steps: 
-          - bash: |
           - task: AzureCLI@2
             displayName: Deploy Infrastructure Components
             inputs:
@@ -107,7 +106,6 @@ stages:
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/infra/infra
               inlineScript: |
-                ls
                 appName=$APPNAME
                 environment=$ENVIRONMENT
                 location=$LOCATION
@@ -138,6 +136,8 @@ stages:
                 
                 echo "Setting up Allow Azure Firewall Rule"
                 az postgres server firewall-rule create --resource-group $resourceGroupName --server-name $appName-$environment-$location-psql --name AllowAllAzureIps --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
+                az webapp deployment source config-zip --resource-group $resourceGroupName --name $appName-$environment-$location-app --src $DEPLOYMENT_FILE_PATH
                 
             env:
               APPNAME: ${{ parameters.appName }}
@@ -145,6 +145,7 @@ stages:
               LOCATION: ${{ parameters.location }}
               DBUSER: ${{ parameters.dbUser }}
               dbPassword: $(dbPassword)
+              DEPLOYMENT_FILE_PATH: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
 
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
