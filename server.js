@@ -20,7 +20,7 @@ http.createServer(function(request, response){
         if(err) {
             console.log(err);
             response.writeHead(500, 'Server Error');
-            response.end('There was an error processing your request');
+            response.end('There was an error processing your request - ' + process.env.PGHOST);
         }
         else {
             response.writeHead(200, {'Content-Type': 'application/json'});
