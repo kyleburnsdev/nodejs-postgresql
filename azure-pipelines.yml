@@ -2,6 +2,20 @@
 # Build a Node.js Express app and deploy it to Azure as a Linux web app.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+name: $(Date:yyyyMMdd)$(Rev:.r)
+parameters:
+  - name: appName
+    displayName: Application Name
+    type: string
+  - name: environment
+    displayName: Environment for this deployment
+    type: string
+  - name: location
+    displayName: Location of deployed resources
+    type: string
+  - name: dbUser
+    displayName: Username for admin user on PostgreSQL Database
+    type: string
 
 trigger:
 - main
@@ -39,18 +53,39 @@ stages:
         npm install
         npm run build --if-present
       displayName: 'npm install, build and test'
-      
-    - task: ArchiveFiles@2
-      displayName: 'Archive files'
+
+    - task: CopyFiles@2
+      displayName: 'Copy infrastructure code to $(Build.ArtifactStagingDirectory)/infra'
       inputs:
-        rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+        contents: 'infra/**'
+        targetFolder: $(Build.ArtifactStagingDirectory)/infra
+
+    - task: DeleteFiles@1
+      displayName: 'Delete infra directory before generated deployment archive'
+      inputs:
+        contents: |
+          infra
+
+    # Compress files into .7z, .tar.gz, or .zip
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)' 
         includeRootFolder: false
-        archiveType: zip
-        archiveFile: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip' 
         replaceExistingArchive: true
 
-    - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-      artifact: drop
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip'
+        artifactName: drop
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)/infra
+        artifactName: infra
+
+    
 
 - stage: Deploy
   displayName: Deploy stage
@@ -65,7 +100,52 @@ stages:
     strategy:
       runOnce:
         deploy:
-          steps:            
+          steps: 
+          - bash: |
+          - task: AzureCLI@2
+            displayName: Deploy Infrastructure Components
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Pipeline.Workspace)/infra/infra
+              inlineScript: |
+                ls
+                appName=$APPNAME
+                environment=$ENVIRONMENT
+                location=$LOCATION
+                dbUser=$DBUSER
+
+                # should be exposed from env
+                echo $appName
+                echo $environment
+                echo $location
+                echo $dbUser
+                echo $dbPassword
+
+                # derived
+                resourceGroupName="$appName-$environment-$location-rg"
+                isUpdate=$(az group exists -n $resourceGroupName)
+
+                if [ "$isUpdate" = "false" ]
+                then
+                echo "New Deployment. Creating Resource Group..."
+                az group create -l $location -n $resourceGroupName
+                fi
+
+                echo "Applying Template"
+                az deployment group create -g $resourceGroupName \
+                    --template-file azureDeploy.json \
+                    --parameters appName=$appName environment=$environment \
+                    --parameters dbUser=$dbUser dbPassword=$dbPassword
+                
+            env:
+              APPNAME: ${{ parameters.appName }}
+              ENVIRONMENT: ${{ parameters.environment }}
+              LOCATION: ${{ parameters.location }}
+              DBUSER: ${{ parameters.dbUser }}
+              dbPassword: $(dbPassword)
+
           - task: AzureWebApp@1
             displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
             inputs:
