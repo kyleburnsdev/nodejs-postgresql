@@ -116,7 +116,7 @@ stages:
                 echo $environment
                 echo $location
                 echo $dbUser
-                echo $dbPassword
+                echo $DEPLOYMENT_FILE_PATH
 
                 # derived
                 resourceGroupName="$appName-$environment-$location-rg"
@@ -137,8 +137,13 @@ stages:
                 echo "Setting up Allow Azure Firewall Rule"
                 az postgres server firewall-rule create --resource-group $resourceGroupName --server-name $appName-$environment-$location-psql --name AllowAllAzureIps --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
 
+                echo "Deploying Website"
                 az webapp deployment source config-zip --resource-group $resourceGroupName --name $appName-$environment-$location-app --src $DEPLOYMENT_FILE_PATH
-                
+
+                echo "Configuring Application Insights"
+                $instrumentationKey = (az monitor app-insights component show --app $appName-$environment-$location-appi --resource-group $resourceGroupName --query  "instrumentationKey" --output tsv)
+                az webapp config appsettings set --name $appName-$environment-$location-app --resource-group $resourceGroupName --settings APPINSIGHTS_INSTRUMENTATIONKEY=$instrumentationKey APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=$instrumentationKey ApplicationInsightsAgent_EXTENSION_VERSION=~2
+
             env:
               APPNAME: ${{ parameters.appName }}
               ENVIRONMENT: ${{ parameters.environment }}
@@ -147,12 +152,12 @@ stages:
               dbPassword: $(dbPassword)
               DEPLOYMENT_FILE_PATH: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
 
-          - task: AzureWebApp@1
-            displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              appType: webAppLinux
-              appName: $(webAppName)
-              runtimeStack: 'NODE|10.10'
-              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
-              startUpCommand: 'npm run start'
+#          - task: AzureWebApp@1
+#            displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
+#            inputs:
+#              azureSubscription: $(azureSubscription)
+#              appType: webAppLinux
+#              appName: $(webAppName)
+#              runtimeStack: 'NODE|10.10'
+#              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+#              startUpCommand: 'npm run start'
