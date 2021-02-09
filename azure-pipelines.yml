@@ -139,7 +139,11 @@ stages:
                     --parameters appName=$appName environment=$environment \
                     --parameters dbUser=$dbUser dbPassword=$dbPassword
                 
-            env:              
+            env:
+              APPNAME: ${{ parameters.appName }}
+              ENVIRONMENT: ${{ parameters.environment }}
+              LOCATION: ${{ parameters.location }}
+              DBUSER: ${{ parameters.dbUser }}
               dbPassword: $(dbPassword)
 
           - task: AzureWebApp@1
