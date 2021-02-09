@@ -102,10 +102,6 @@ stages:
         deploy:
           steps: 
           - bash: |
-              echo "##vso[task.setvariable variable=APP_NAME]$(appName)"
-              echo "##vso[task.setvariable variable=ENV_NAME]$(environment)"
-              echo "##vso[task.setvariable variable=RESOURCE_LOCATION]$(location)"
-              echo "##vso[task.setvariable variable=DB_USER]$(dbUser)"
           - task: AzureCLI@2
             displayName: Deploy Infrastructure Components
             inputs:
@@ -143,7 +139,11 @@ stages:
                     --parameters appName=$appName environment=$environment \
                     --parameters dbUser=$dbUser dbPassword=$dbPassword
                 
-            env:              
+            env:
+              APP_NAME: $(appName)
+              ENV_NAME: $(environment)
+              RESOURCE_LOCATION: $(location)
+              DB_USER: $(dbUser)
               dbPassword: $(dbPassword)
 
           - task: AzureWebApp@1
