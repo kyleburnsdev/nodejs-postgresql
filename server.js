@@ -18,7 +18,7 @@ http.createServer(function(request, response){
     client.connect();
     client.query(queryText, (err, result) => {
         if(err) {
-            console.log(err);
+            console.error(err);
             response.writeHead(500, 'Server Error');
             response.end('There was an error processing your request - ' + process.env.PGHOST);
         }
