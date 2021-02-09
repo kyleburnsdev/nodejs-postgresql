@@ -136,6 +136,9 @@ stages:
                     --parameters appName=$appName environment=$environment \
                     --parameters dbUser=$dbUser dbPassword=$dbPassword
                 
+                echo "Setting up Allow Azure Firewall Rule"
+                az postgres server firewall-rule create --resource-group $resourceGroupName --server-name $appName-$environment-$location-psql --name AllowAllAzureIps --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+                
             env:
               APPNAME: ${{ parameters.appName }}
               ENVIRONMENT: ${{ parameters.environment }}
