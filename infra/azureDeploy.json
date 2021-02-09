@@ -20,7 +20,7 @@
         }
     },
     "variables": {
-        "baseName": "[toLower(concat(parameters('appName'), '-', parameters('location'), '-', parameters('environment'), '-'))]",
+        "baseName": "[toLower(concat(parameters('appName'), '-', parameters('environment'), '-' , parameters('location'), '-'))]",
         "storageBaseName": "[replace(variables('baseName'), '-', '')]",
         "webAppName": "[concat(variables('baseName'), 'app')]",
         "appPlanName": "[concat(variables('baseName'), 'plan')]",
