@@ -10,6 +10,23 @@
 #
 az -v
 
+#
+# Placing a .env file in the repository root can be used to set environment
+# variables to be used in the script. Each line should contain a variable to
+# be set in the format:
+# VARIABLE_NAME=VALUE
+# 
+# Here is sample file:
+# APPNAME=myapp
+# ENVIRONMENT=dev
+# LOCATION=eastus
+# DBUSER=dbuser
+# dbPassword=Sup3rS3cr3t
+# DEPLOYMENT_FILE_PATH=../build/Release/269.zip
+#
+# The .env pile is included in .gitignore to avoid leaking secrets into
+# source control, so you will have to create your own on each development
+# machine
 echo "Checking for .env to import"
 if [ -f ../.env ]; then
     echo "Importing .env"
@@ -18,7 +35,7 @@ else
     echo "No .env file to import"
 fi
 
-echo "Ensuring environment variables set up"
+echo "Ensuring environment set up appropriately"
 if [ "$APPNAME" = "" ]
 then
  1>&2 echo "APPNAME environment variable is not set"
@@ -47,6 +64,15 @@ if [ "$dbPassword" = "" ]
 then
  1>&2 echo "dbPassword environment variable is not set"
  exit 1
+fi
+
+#file path (see build.sh for details)
+if [[ -s $DEPLOYMENT_FILE_PATH ]]; 
+then
+    echo "$DEPLOYMENT_FILE_PATH exists"
+else
+    1>$2 echo "$DEPLOYMENT_FILE_PATH missing or is empty"
+    exit 1
 fi
 
 appName=$APPNAME
@@ -86,4 +112,4 @@ az postgres server firewall-rule create --resource-group $resourceGroupName --se
 echo "Deploying Website"
 az webapp deployment source config-zip --resource-group $resourceGroupName --name $appName-$environment-$location-app --src $DEPLOYMENT_FILE_PATH
 
-echo "Deployment complete"
+echo "Deployment complete to https://$appName-$environment-$location-app.azurewebsites.net"
