@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # THIS SCRIPT WAS CREATED FOR DEMONSTRATION PURPOSES ONLY.
 # WHILE CONCEPTS MAY PROVIDE THE BASIS FOR PRODUCTION DEPLOYMENT
@@ -31,6 +32,8 @@ echo "Checking for .env to import"
 if [ -f ../.env ]; then
     echo "Importing .env"
     export $(cat ../.env | xargs)
+    # above broke on Darwin
+    eval $(grep -v -e '^#' ../.env | xargs -I {} echo export \'{}\')
 else
     echo "No .env file to import"
 fi
@@ -38,31 +41,31 @@ fi
 echo "Ensuring environment set up appropriately"
 if [ "$APPNAME" = "" ]
 then
- 1>&2 echo "APPNAME environment variable is not set"
+ echo "APPNAME environment variable is not set"
  exit 1
 fi
 
 if [ "$ENVIRONMENT" = "" ]
 then
- 1>&2 echo "ENVIRONMENT environment variable is not set"
+ echo "ENVIRONMENT environment variable is not set"
  exit 1
 fi
 
 if [ "$LOCATION" = "" ]
 then
- 1>&2 echo "LOCATION environment variable is not set"
+ echo "LOCATION environment variable is not set"
  exit 1
 fi
 
 if [ "$DBUSER" = "" ]
 then
- 1>&2 echo "DBUSER environment variable is not set"
+ echo "DBUSER environment variable is not set"
  exit 1
 fi
 #dbPassword
 if [ "$dbPassword" = "" ]
 then
- 1>&2 echo "dbPassword environment variable is not set"
+ echo "dbPassword environment variable is not set"
  exit 1
 fi
 
@@ -71,7 +74,7 @@ if [[ -s $DEPLOYMENT_FILE_PATH ]];
 then
     echo "$DEPLOYMENT_FILE_PATH exists"
 else
-    1>$2 echo "$DEPLOYMENT_FILE_PATH missing or is empty"
+    echo "$DEPLOYMENT_FILE_PATH missing or is empty"
     exit 1
 fi
 

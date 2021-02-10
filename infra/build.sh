@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # THIS SCRIPT WAS CREATED FOR DEMONSTRATION PURPOSES ONLY.
 # WHILE CONCEPTS MAY PROVIDE THE BASIS FOR PRODUCTION DEPLOYMENT
@@ -10,18 +11,20 @@ echo "Checking for .env to import"
 if [ -f ../.env ]; then
     echo "Importing .env"
     export $(cat ../.env | xargs)
+    # above broke on Darwin
+    eval $(grep -v -e '^#' ../.env | xargs -I {} echo export \'{}\')
 else
     echo "No .env file to import"
 fi
 
 # File path. The folder "/build/Release" (relative to repo root)
 # is included in the .gitignore so that build outputs will not be put in the repo
-if [[ -s $DEPLOYMENT_FILE_PATH ]]; 
+if [[ "$DEPLOYMENT_FILE_PATH" = "" ]]; 
 then
-    echo "$DEPLOYMENT_FILE_PATH exists"
-else
-    1>$2 echo "$DEPLOYMENT_FILE_PATH missing or is empty"
+    echo "$DEPLOYMENT_FILE_PATH missing"
     exit 1
+else
+    echo "$DEPLOYMENT_FILE_PATH"
 fi
 
 # 
