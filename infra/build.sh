@@ -5,6 +5,25 @@
 # IN ITS CURRENT FORM
 #
 
+# (see deploy.sh for explanation)
+echo "Checking for .env to import"
+if [ -f ../.env ]; then
+    echo "Importing .env"
+    export $(cat ../.env | xargs)
+else
+    echo "No .env file to import"
+fi
+
+# File path. The folder "/build/Release" (relative to repo root)
+# is included in the .gitignore so that build outputs will not be put in the repo
+if [[ -s $DEPLOYMENT_FILE_PATH ]]; 
+then
+    echo "$DEPLOYMENT_FILE_PATH exists"
+else
+    1>$2 echo "$DEPLOYMENT_FILE_PATH missing or is empty"
+    exit 1
+fi
+
 # 
 # build the npm package and zip the deployable application artifacts
 # for use in the deployment. The folder "/build/Release" (relative to repo root)
@@ -12,4 +31,4 @@
 #
 npm install ..
 mkdir -p ../build/Release
-zip -r ../build/Release/269.zip ../node_modules ../package-lock.json ../package.json ../server.js
+zip -r $DEPLOYMENT_FILE_PATH ../node_modules ../package-lock.json ../package.json ../server.js
