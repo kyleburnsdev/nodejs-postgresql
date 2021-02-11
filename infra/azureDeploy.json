@@ -84,7 +84,7 @@
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
             "name": "[variables('appPlanName')]",
-            "location": "East US",
+            "location": "[parameters('location')]",
             "sku": {
                 "name": "P1v2",
                 "tier": "PremiumV2",
@@ -108,7 +108,7 @@
             "type": "Microsoft.Web/sites",
             "apiVersion": "2018-11-01",
             "name": "[variables('webAppName')]",
-            "location": "East US",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appPlanName'))]",
                 "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
@@ -178,7 +178,7 @@
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2018-11-01",
             "name": "[concat(variables('webAppName'), '/web')]",
-            "location": "East US",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
             ],
