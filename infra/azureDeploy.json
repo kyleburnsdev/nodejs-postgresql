@@ -66,15 +66,18 @@
             "type": "microsoft.insights/components",
             "apiVersion": "2018-05-01-preview",
             "name": "[variables('appInsightsName')]",
-            "location": "eastus",
+            "location": "[resourceGroup().location]",
             "kind": "web",
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites', variables('webAppName'))]": "Resource",
+                "displayName": "App Insights"
+            },
             "properties": {
                 "Application_Type": "web",
-                "Flow_Type": "Redfield",
-                "Request_Source": "IbizaWebAppExtensionCreate",
                 "RetentionInDays": 90,
                 "publicNetworkAccessForIngestion": "Enabled",
-                "publicNetworkAccessForQuery": "Enabled"
+                "publicNetworkAccessForQuery": "Enabled",
+                "applicationId": "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
             }
         },
         {
@@ -107,7 +110,8 @@
             "name": "[variables('webAppName')]",
             "location": "East US",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('appPlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms', variables('appPlanName'))]",
+                "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
             ],
             "kind": "app,linux",
             "properties": {
@@ -128,7 +132,38 @@
                 "reserved": true,
                 "isXenon": false,
                 "hyperV": false,
-                "siteConfig": {},
+                "siteConfig": {
+                    "appSettings": [
+                         {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "ApplicationInsightsAgent_EXTENSION_VERSION",
+                            "value": "~2"
+                        },
+                        {
+                            "name": "PGHOST",
+                            "value": "[variables('dbConnectionAppSettings').host]"
+                        },
+                        {
+                            "name": "PGUSER",
+                            "value": "[variables('dbConnectionAppSettings').user]"
+                        },
+                        {
+                            "name": "PGDATABASE",
+                            "value": "[variables('dbConnectionAppSettings').database]"
+                        },
+                        {
+                            "name": "PGPASSWORD",
+                            "value": "[variables('dbConnectionAppSettings').password]"
+                        }
+                    ]
+                },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": false,
                 "clientCertEnabled": false,
@@ -137,24 +172,7 @@
                 "dailyMemoryTimeQuota": 0,
                 "httpsOnly": false,
                 "redundancyMode": "None"
-            },
-            "resources": [
-                {
-                    "type": "config",
-                    "apiVersion": "2020-06-01",
-                    "name": "appsettings",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/Sites', variables('webAppName'))]"
-                    ],
-                    "properties":
-                    {
-                        "PGHOST": "[variables('dbConnectionAppSettings').host]",
-                        "PGUSER": "[variables('dbConnectionAppSettings').user]",
-                        "PGDATABASE": "[variables('dbConnectionAppSettings').database]",
-                        "PGPASSWORD": "[variables('dbConnectionAppSettings').password]"
-                    }
-                }
-            ]
+            }
         },
         {
             "type": "Microsoft.Web/sites/config",
