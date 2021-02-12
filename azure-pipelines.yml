@@ -56,7 +56,8 @@ stages:
         workingDirectory: '$(Build.SourcesDirectory)/infra'
         script: |
         chmod +x build.sh
-        ./build.sh     
+        ./build.sh  
+
       env:
         APPNAME: ${{ parameters.appName }}
         ENVIRONMENT: ${{ parameters.environment }}
@@ -99,6 +100,7 @@ stages:
               inlineScript: |
                 chmod +x deploy.sh
                 ./deploy.sh
+
             env:
               APPNAME: ${{ parameters.appName }}
               ENVIRONMENT: ${{ parameters.environment }}
