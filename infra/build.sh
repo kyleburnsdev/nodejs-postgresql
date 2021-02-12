@@ -16,7 +16,7 @@ fi
 
 # File path. The folder "/build/Release" (relative to repo root)
 # is included in the .gitignore so that build outputs will not be put in the repo
-if [[ -s $DEPLOYMENT_FILE_PATH ]]; 
+if [[ "$DEPLOYMENT_FILE_PATH" = "" ]]; 
 then
     echo "$DEPLOYMENT_FILE_PATH exists"
 else
