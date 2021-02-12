@@ -36,7 +36,7 @@ The `.env` file in the repository root is intended to remain excluded from sourc
 
 Building the application can be done by running the following commands from a bash shell with `<repo_root>/infra` as your working directory:
 
-```shell
+```console
 chmod +x build.sh
 ./build.sh
 ```
@@ -45,7 +45,7 @@ Before attempting to deploy the application, be sure that you have used the Azur
 
 Provisioning of resources and deployment of the application can be accomplished by running the following commands from a bash shell with `<repo_root>/infra` as your working directory:
 
-```shell
+```console
 chmod +x deploy.sh
 ./deploy.sh
 ```
@@ -57,7 +57,7 @@ This is a baseline intended to deploy as simple NodeJS to Azure App Service and 
 
 The NodeJS web server listens and responds to any request with a fixed, plain text response.
 
-```
+```javascript
 var http = require('http');
 var port = process.env.port || 8080;
 http.createServer(function(request, response){
@@ -70,3 +70,38 @@ The `infra` folder contains an Azure Resource Manager (ARM) template that define
 ## Simple database connectivity
 
 This demonstrates basic connectivity between Azure App Service and Azure Database for PostgreSQL. The snapshot for this milestone can be found in the `basic-db-connection` branch.
+
+In this code, we extend the code by using the `pg` NPM package, which provides for interaction with PostgreSQL databases. The most complex piece of the code is that we cannot use the default parameterless construction behavior of the `Client` and `Pool` objects which reads all connection information from environment variables and instead must create our own params that includes this information *and* specifies that an SSL connection should be used. Once connected, a query (`SELECT NOW()`) is executed to return the current system date/time on the database server and the resulting dataset is turned into a JSON object to be sent to the requestor.
+
+```javascript
+const pg = require('pg');
+
+const params = {
+    host: process.env.PGHOST,
+    user: process.env.PGUSER,
+    database: process.env.PGDATABASE,
+    ssl: true
+};
+
+const queryText = "SELECT NOW()";
+
+var http = require('http');
+require('dotenv').config();
+var port = process.env.port || 8080;
+http.createServer(function(request, response){
+    console.log('http request received');
+    var client = new pg.Client(params);
+    client.connect();
+    client.query(queryText, (err, result) => {
+        if(err) {
+            console.error(err);
+            response.writeHead(500, 'Server Error');
+            response.end('There was an error processing your request - ' + process.env.PGHOST);
+        }
+        else {
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify(result.rows));
+        }
+    });
+}).listen(port);
+```
