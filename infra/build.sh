@@ -33,6 +33,7 @@ fi
 # is included in the .gitignore so that build outputs will not be put in the repo
 #
 npm install ..
-targetFolder = $(dirname "$DEPLOYMENT_FILE_PATH")
+targetFolder=$(dirname "$DEPLOYMENT_FILE_PATH")
+echo "target folder is $targetFolder"
 mkdir -p $targetFolder
 zip -r $DEPLOYMENT_FILE_PATH ../node_modules ../package-lock.json ../package.json ../server.js
