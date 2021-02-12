@@ -54,10 +54,7 @@ stages:
       inputs:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)/infra'
-        script: |
-        chmod +x build.sh
-        ./build.sh  
-
+        script: chmod +x build.sh && ./build.sh
       env:
         APPNAME: ${{ parameters.appName }}
         ENVIRONMENT: ${{ parameters.environment }}
@@ -97,10 +94,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/infra/infra
-              inlineScript: |
-                chmod +x deploy.sh
-                ./deploy.sh
-
+              inlineScript: chmod +x deploy.sh && ./deploy.sh
             env:
               APPNAME: ${{ parameters.appName }}
               ENVIRONMENT: ${{ parameters.environment }}
