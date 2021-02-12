@@ -38,7 +38,7 @@ stages:
       vmImage: $(vmImageName)
       
     steps:
-    - task: DelteFiles@1
+    - task: DeleteFiles@1
       displayName: "Remove .env file"
       inputs:
         contents: .env
