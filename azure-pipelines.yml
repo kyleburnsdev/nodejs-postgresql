@@ -22,11 +22,8 @@ variables:
   # Azure Resource Manager connection created during pipeline creation
   azureSubscription: '4c485bf3-112c-4704-9944-e819f2ec7392'
   
-  # Web app name
-  webAppName: 'nodepostgres-poc-eastus-app'
-  
   # Environment name
-  environmentName: 'nodepostgres-poc-eastus-app'
+  environmentName: '${{ parameters.appName }}-${{ parameters.environment }}-${{ parameters.location }}-app'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -41,36 +38,35 @@ stages:
       vmImage: $(vmImageName)
       
     steps:
+    - task: DeleteFiles@1
+      displayName: "Remove .env file"
+      inputs:
+        contents: .env
+
     - task: NodeTool@0
       inputs:
         versionSpec: '10.x'
       displayName: 'Install Node.js'
-
-    - script: |
-        npm install
-        npm run build --if-present
-      displayName: 'npm install, build and test'
 
     - task: CopyFiles@2
       displayName: 'Copy infrastructure code to $(Build.ArtifactStagingDirectory)/infra'
       inputs:
         contents: 'infra/**'
         targetFolder: $(Build.ArtifactStagingDirectory)/infra
-
-    - task: DeleteFiles@1
-      displayName: 'Delete infra directory before generated deployment archive'
+    
+    - task: Bash@3
+      displayName: 'Execute the build script'
       inputs:
-        contents: |
-          infra
-
-    # Compress files into .7z, .tar.gz, or .zip
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: '$(System.DefaultWorkingDirectory)' 
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip' 
-        replaceExistingArchive: true
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)/infra'
+        script: chmod +x build.sh && ./build.sh
+      env:
+        APPNAME: ${{ parameters.appName }}
+        ENVIRONMENT: ${{ parameters.environment }}
+        LOCATION: ${{ parameters.location }}
+        DBUSER: ${{ parameters.dbUser }}
+        dbPassword: $(dbPassword)
+        DEPLOYMENT_FILE_PATH: $(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -81,8 +77,6 @@ stages:
       inputs:
         pathToPublish: $(Build.ArtifactStagingDirectory)/infra
         artifactName: infra
-
-    
 
 - stage: Deploy
   displayName: Deploy stage
@@ -105,9 +99,7 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               workingDirectory: $(Pipeline.Workspace)/infra/infra
-              inlineScript: |
-                chmod +x deploy.sh
-                ./deploy.sh
+              inlineScript: chmod +x deploy.sh && ./deploy.sh
             env:
               APPNAME: ${{ parameters.appName }}
               ENVIRONMENT: ${{ parameters.environment }}
@@ -115,13 +107,3 @@ stages:
               DBUSER: ${{ parameters.dbUser }}
               dbPassword: $(dbPassword)
               DEPLOYMENT_FILE_PATH: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
-
-#          - task: AzureWebApp@1
-#            displayName: 'Azure Web App Deploy: nodepostgres-poc-eastus-app'
-#            inputs:
-#              azureSubscription: $(azureSubscription)
-#              appType: webAppLinux
-#              appName: $(webAppName)
-#              runtimeStack: 'NODE|10.10'
-#              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
-#              startUpCommand: 'npm run start'

@@ -21,10 +21,10 @@ fi
 # is included in the .gitignore so that build outputs will not be put in the repo
 if [[ "$DEPLOYMENT_FILE_PATH" = "" ]]; 
 then
-    echo "$DEPLOYMENT_FILE_PATH missing"
-    exit 1
+    echo "$DEPLOYMENT_FILE_PATH exists"
 else
-    echo "$DEPLOYMENT_FILE_PATH"
+    echo "DEPLOYMENT_FILE_PATH variable missing"
+    exit 1
 fi
 
 # 
@@ -33,5 +33,6 @@ fi
 # is included in the .gitignore so that build outputs will not be put in the repo
 #
 npm install ..
-mkdir -p ../build/Release
+targetFolder = $(dirname "$DEPLOYMENT_FILE_PATH")
+mkdir -p $targetFolder
 zip -r $DEPLOYMENT_FILE_PATH ../node_modules ../package-lock.json ../package.json ../server.js
