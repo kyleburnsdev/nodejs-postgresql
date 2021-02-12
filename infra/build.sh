@@ -21,10 +21,10 @@ fi
 # is included in the .gitignore so that build outputs will not be put in the repo
 if [[ "$DEPLOYMENT_FILE_PATH" = "" ]]; 
 then
-    echo "$DEPLOYMENT_FILE_PATH exists"
-else
     echo "DEPLOYMENT_FILE_PATH variable missing"
     exit 1
+else
+    echo "$DEPLOYMENT_FILE_PATH exists"
 fi
 
 # 
