@@ -20,7 +20,7 @@ if [[ -s $DEPLOYMENT_FILE_PATH ]];
 then
     echo "$DEPLOYMENT_FILE_PATH exists"
 else
-    1>$2 echo "$DEPLOYMENT_FILE_PATH missing or is empty"
+    echo "$DEPLOYMENT_FILE_PATH missing or is empty"
     exit 1
 fi
 
@@ -30,5 +30,6 @@ fi
 # is included in the .gitignore so that build outputs will not be put in the repo
 #
 npm install ..
-mkdir -p ../build/Release
+targetFolder = $(dirname "$DEPLOYMENT_FILE_PATH")
+mkdir -p $targetFolder
 zip -r $DEPLOYMENT_FILE_PATH ../node_modules ../package-lock.json ../package.json ../server.js

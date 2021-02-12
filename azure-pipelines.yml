@@ -61,7 +61,7 @@ stages:
         LOCATION: ${{ parameters.location }}
         DBUSER: ${{ parameters.dbUser }}
         dbPassword: $(dbPassword)
-        DEPLOYMENT_FILE_PATH: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip   
+        DEPLOYMENT_FILE_PATH: $(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip
 
     - task: PublishBuildArtifacts@1
       inputs:
