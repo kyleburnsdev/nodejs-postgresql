@@ -23,7 +23,7 @@ variables:
   azureSubscription: '4c485bf3-112c-4704-9944-e819f2ec7392'
   
   # Environment name
-  environmentName: '$(parameters.AppName)-$(parameters.environment)-$(parameters.location)-app'
+  environmentName: '${{ parameters.appName }}-${{ parameters.environment }}-${{ parameters.location }}-app'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
