@@ -38,6 +38,11 @@ stages:
       vmImage: $(vmImageName)
       
     steps:
+    - task: DelteFiles@1
+      displayName: "Remove .env file"
+      inputs:
+        contents: .env
+
     - task: NodeTool@0
       inputs:
         versionSpec: '10.x'
