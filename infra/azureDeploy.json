@@ -68,7 +68,7 @@
             "type": "Microsoft.KeyVault/vaults",
             "apiVersion": "2016-10-01",
             "name": "[variables('keyVaultName')]",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('location')]",
             "properties": {
                 "sku": {
                     "name": "standard",
@@ -97,7 +97,7 @@
             "type": "Microsoft.KeyVault/vaults/secrets",
             "apiVersion": "2016-10-01",
             "name": "[variables('keyVaultDbPasswordSecretName')]",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
             ],
@@ -109,7 +109,7 @@
             "type": "microsoft.insights/components",
             "apiVersion": "2018-05-01-preview",
             "name": "[variables('appInsightsName')]",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('location')]",
             "kind": "web",
             "tags": {
                 "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites', variables('webAppName'))]": "Resource",

@@ -8,7 +8,7 @@
 This series is meant to help developers implement their first application using a NodeJS webserver and PostgreSQL database all hosted in PaaS services on Microsoft's Azure cloud. It is intentionally simple to reduce distractions. Over time, a progression of "milestones" will be developed to progressively add elements found in production-ready software. These milestones will be represented by long living "snapshot" branches. The planned progression is:
 - [x] [Basic NodeJS app](#basic-nodejs-app)
 - [x] [Basic database connectivity](#simple-database-connectivity)
-- [ ] Key Vault Secrets
+- [X] [Key Vault Secrets](#key-vault-secrets)
 - [ ] Private Networking
 - [ ] Docker
 
@@ -104,4 +104,96 @@ http.createServer(function(request, response){
         }
     });
 }).listen(port);
+```
+
+## Key Vault Secrets
+
+This expands upon the previous example by more securely storing the database password as a "secret" in [Azure Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/). 
+
+In order to support integration with Azure Key Vault, the web app has been updated to use a System Assigned [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview). System Assigned Managed Identity can be established by including an "identity" property in the JSON description of the website resource as follows:
+
+```json
+//snip
+    "type": "Microsoft.Web/sites",
+    "kind": "app,linux",
+    "name": "[variables('webAppName')]",
+    "apiVersion": "2018-11-01",            
+    "location": "[parameters('location')]",
+    "identity": {
+        "type": "SystemAssigned"
+    },
+//snip
+```
+
+The ARM template used to deploy the previous sections has been updated to include provisioning an Azure Key Vault resource. The Key Vault resource declares a dependency in the web app because it will include an access rule allowing the web app to retrieve secret values from the Key Vault. There is no need for the web app to list the keys present in the Key Vault or access any certificates stored in the Key Vault, so the Access Policy is defined without permission to do these things. Here is an example of how the Key Vault is created along with the Access Policy:
+
+```json
+//snip
+    {
+        "type": "Microsoft.KeyVault/vaults",
+        "apiVersion": "2016-10-01",
+        "name": "[variables('keyVaultName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+            "sku": {
+                "name": "standard",
+                "family": "A"
+            },
+            "tenantId": "[subscription().tenantId]",
+            "accessPolicies": [
+                {
+                    "tenantId": "[subscription().tenantid]",
+                    "objectId": "[reference(resourceId('Microsoft.Web/sites', variables('webAppName')),'2019-08-01', 'full').identity.principalId]",
+                    "permissions": {
+                        "keys": [],
+                        "secrets": [
+                        "get"
+                        ],
+                    "certificates": []
+                }
+            }
+            ]
+        },
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
+        ]
+    }
+//snip
+```
+
+The secret itself is defined as an additional resource and uses the value provided in the `dbPassword` template parameter:
+
+```json
+// snip
+    {
+        "type": "Microsoft.KeyVault/vaults/secrets",
+        "apiVersion": "2016-10-01",
+        "name": "[variables('keyVaultDbPasswordSecretName')]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+        ],
+        "properties": {
+            "value": "[parameters('dbPassword')]"
+        }
+    }
+// snip
+```
+
+With the foundation set, we can turn our attention to referencing the secret in the web app configuration. The database password setting had previously been stored using
+
+```json
+{
+    "name": "PGPASSWORD",
+    "value": "[variables('dbConnectionAppSettings').password]"
+}
+```
+
+Now that we are storing the secret in Key Vault, instead the value itself we will make use of a special "macro" [syntax](https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#reference-syntax) for app settings that instructs app service to retrieve the value from Key Vault in the form `@Microsoft.KeyVault({referenceString})`. The updated definition for this setting is
+
+```json
+{
+    "name": "PGPASSWORD",
+    "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=dbPassword)')]"
+}
 ```
