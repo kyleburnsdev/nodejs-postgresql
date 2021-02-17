@@ -74,8 +74,24 @@
                     "name": "standard",
                     "family": "A"
                 },
-                "tenantId": "[subscription().tenantId]"
-            }
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantid]",
+                        "objectId": "[reference(resourceId('Microsoft.Web/sites', variables('webAppName')),'2019-08-01', 'full').identity.principalId]",
+                        "permissions": {
+                            "keys": [],
+                            "secrets": [
+                            "get"
+                            ],
+                        "certificates": []
+                    }
+                }
+                ]
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
+            ]
         },
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
@@ -133,14 +149,17 @@
         },        
         {
             "type": "Microsoft.Web/sites",
-            "apiVersion": "2018-11-01",
+            "kind": "app,linux",
             "name": "[variables('webAppName')]",
+            "apiVersion": "2018-11-01",            
             "location": "[parameters('location')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appPlanName'))]",
                 "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
-            ],
-            "kind": "app,linux",
+            ],            
             "properties": {
                 "enabled": true,
                 "hostNameSslStates": [
@@ -187,7 +206,7 @@
                         },
                         {
                             "name": "PGPASSWORD",
-                            "value": "[variables('dbConnectionAppSettings').password]"
+                            "value": "[concat('@Microsoft.KeyVault(VaultName=', variables('keyVaultName'), ';SecretName=dbPassword)')]"
                         }
                     ]
                 },
