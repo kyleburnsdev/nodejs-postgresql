@@ -26,6 +26,8 @@
         "appPlanName": "[concat(variables('baseName'), 'plan')]",
         "databaseServerName": "[concat(variables('baseName'), 'psql')]",
         "appInsightsName": "[concat(variables('baseName'), 'appi')]",
+        "keyVaultName": "[concat(variables('baseName'), 'kv')]",
+        "keyVaultDbPasswordSecretName": "[concat(variables('keyVaultName'),'/dbPassword')]",
         "dbConnectionAppSettings" : {
             "host": "[concat(variables('databaseServerName'), '.postgres.database.azure.com')]",
             "user": "[concat(parameters('dbUser'), '@', variables('databaseServerName'))]",
@@ -60,6 +62,31 @@
                     "geoRedundantBackup": "Disabled",
                     "storageAutogrow": "Enabled"
                 }
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2016-10-01",
+            "name": "[variables('keyVaultName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": {
+                    "name": "standard",
+                    "family": "A"
+                },
+                "tenantId": "[subscription().tenantId]"
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "name": "[variables('keyVaultDbPasswordSecretName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ],
+            "properties": {
+                "value": "[parameters('dbPassword')]"
             }
         },
         {
@@ -248,5 +275,39 @@
                 "reservedInstanceCount": 0
             }
         }
-    ]
+    ],
+    "outputs": {
+        "webAppName": {
+            "type": "string",
+            "value": "[variables('webAppName')]"
+        },
+        "appPlanName":  {
+            "type": "string",
+            "value": "[variables('appPlanName')]"
+        },
+        "databaseServerName": {
+            "type": "string",
+            "value":  "[variables('databaseServerName')]"
+        },
+        "appInsightsName": {
+            "type": "string",
+            "value":  "[variables('appInsightsName')]"
+        },
+        "keyVaultName": {
+            "type": "string",
+            "value":  "[variables('keyVaultName')]"
+        },
+        "dbHostAppSetting": {
+            "type": "string",
+            "value":  "[variables('dbConnectionAppSettings').host]"
+        },
+        "dbUserAppSetting": {
+            "type": "string",
+            "value":  "[variables('dbConnectionAppSettings').user]"
+        },
+        "websiteUrl": {
+            "type": "string",
+            "value": "[concat('https://', variables('webAppName'), '.azurewebsites.net')]"
+        }
+    }
 }
